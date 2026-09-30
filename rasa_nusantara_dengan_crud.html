@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rasa Nusantara</title>
+    <!-- Tailwind CSS untuk styling cepat dan responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts untuk tipografi yang lebih baik -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome untuk ikon-ikon (menggunakan CDN cloudflare) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        // Konfigurasi Tailwind untuk warna dan font khusus agar sesuai desain
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-brown': '#A04724',
+                        'brand-light-brown': '#C77D59',
+                        'brand-bg': '#FDF9F1',
+                        'brand-dark': '#2D201A',
+                        'brand-accent': '#E86629'
+                    },
+                    fontFamily: {
+                        'heading': ['Playfair Display', 'serif'],
+                        'body': ['Plus Jakarta Sans', 'sans-serif'],
+                        'hand': ['Caveat', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Gaya tambahan yang sulit atau kurang efisien dengan Tailwind utility class */
+        body {
+            background-color: #FDF9F1;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #4A4A4A;
+        }
+        
+        h1, h2, h3, h4, h5, h6, .font-heading {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Hero shape background custom - compact seperti referensi */
+        .hero-bg-shape {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 52%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            border-bottom-left-radius: 90px;
+            border-top-left-radius: 20px;
+        }
+        .hero-cream-blob {
+            position: absolute;
+            top: -60px;
+            left: -40px;
+            width: 60%;
+            height: calc(100% + 60px);
+            background: #FCEFD9;
+            border-bottom-right-radius: 120px;
+            border-top-right-radius: 40px;
+            z-index: 0;
+        }
+        
+        /* Modal Style untuk CRUD Admin */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Menyembunyikan scrollbar untuk estetik */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #A04724; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #873615; 
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+
+<!-- NAVBAR -->
+<nav class="fixed w-full z-50 bg-[#FDF9F1]/90 backdrop-blur-md border-b border-brand-brown/10 transition-all duration-300" id="navbar">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <!-- Logo -->
+            <div class="flex-shrink-0 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-brand-brown flex items-center justify-center text-white">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+                <div>
+                    <h1 class="font-heading font-bold text-xl text-brand-dark leading-tight">Rasa Nusantara</h1>
+                    <p class="text-[10px] tracking-widest text-brand-brown uppercase">Cita Rasa Indonesia</p>
+                </div>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="#beranda" class="text-brand-brown font-semibold hover:text-brand-accent transition">Beranda</a>
+                <a href="#menu" class="text-gray-600 hover:text-brand-brown transition">Menu</a>
+                <a href="#tentang" class="text-gray-600 hover:text-brand-brown transition">Tentang</a>
+                <a href="#kontak" class="text-gray-600 hover:text-brand-brown transition">Kontak</a>
+            </div>
+
+            <!-- Search Bar Desktop -->
+            <div class="hidden lg:flex items-center">
+                <div class="relative">
+                    <input type="text" id="nav-search" placeholder="Cari menu favorit..." class="pl-10 pr-4 py-2 rounded-full border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent text-sm w-64 shadow-sm">
+                    <div class="absolute left-3 top-2.5 text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile menu button -->
+            <div class="md:hidden flex items-center">
+                <button id="mobile-menu-btn" class="text-gray-600 hover:text-brand-brown focus:outline-none">
+                    <i class="fa-solid fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Mobile Menu Panel (Hidden by default) -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+        <div class="px-4 pt-2 pb-4 space-y-1">
+            <a href="#beranda" class="block px-3 py-2 rounded-md text-base font-medium text-brand-brown bg-orange-50">Beranda</a>
+            <a href="#menu" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-brand-brown hover:bg-orange-50">Menu</a>
+            <a href="#tentang" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-brand-brown hover:bg-orange-50">Tentang</a>
+            <a href="#kontak" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-brand-brown hover:bg-orange-50">Kontak</a>
+            <div class="mt-4 px-3">
+                 <div class="relative">
+                    <input type="text" id="mobile-search" placeholder="Cari menu..." class="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-brown text-sm">
+                    <div class="absolute left-3 top-2.5 text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO SECTION - compact sesuai referensi -->
+<section id="beranda" class="relative pt-20 lg:pt-24 pb-8 lg:pb-12 bg-[#FDF3E3] overflow-hidden">
+    <!-- Blob cream kiri -->
+    <div class="hero-cream-blob hidden lg:block"></div>
+    <!-- Gambar kanan full -->
+    <div class="hero-bg-shape hidden lg:block">
+         <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=1200&q=80" alt="Nasi Goreng Hero" class="w-full h-full object-cover">
+         <div class="absolute inset-0 bg-gradient-to-r from-[#FDF3E3] via-transparent to-transparent" style="width:45%"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <!-- Hero Text -->
+        <div class="max-w-xl">
+            <p class="text-brand-brown/80 tracking-[0.3em] font-semibold text-[11px] mb-2 uppercase">Selamat Datang Di</p>
+            <h1 class="text-[42px] lg:text-[64px] font-heading font-extrabold text-brand-dark leading-[1.05] mb-4">
+                Rasa <span class="text-brand-brown relative">Nusantara
+                    <svg class="absolute -bottom-2 left-0 w-[85%]" height="10" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M2 8 Q100 0 198 6" stroke="#A04724" stroke-width="5" stroke-linecap="round" fill="none"/></svg>
+                </span>
+            </h1>
+            <p class="text-gray-600 text-[15px] mb-6 max-w-md leading-relaxed">
+                Nikmati hidangan lezat dengan cita rasa Indonesia yang autentik, bahan berkualitas, dan harga yang terjangkau.
+            </p>
+            
+            <div class="flex flex-wrap gap-3 mb-8">
+                <a href="#menu" class="bg-brand-brown hover:bg-brand-dark text-white px-6 py-2.5 rounded-xl font-medium transition duration-300 shadow-lg shadow-brand-brown/30 flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-utensils"></i> Lihat Menu
+                </a>
+                <a href="#tentang" class="bg-white/80 border border-brand-brown/30 text-brand-brown hover:bg-white px-6 py-2.5 rounded-xl font-medium transition duration-300 flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-circle-play"></i> Tentang Kami
+                </a>
+            </div>
+
+            <!-- Features Badge - tanpa card, seperti gambar -->
+            <div class="flex flex-wrap gap-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-full bg-[#F5E0C3] flex items-center justify-center text-brand-brown text-sm border border-white">
+                        <i class="fa-solid fa-leaf"></i>
+                    </div>
+                    <div class="text-[12px] font-bold text-gray-800 leading-tight">Bahan<br>Berkualitas</div>
+                </div>
+                <div class="flex items-center gap-2 lg:border-l lg:border-brand-brown/20 lg:pl-6">
+                    <div class="w-9 h-9 rounded-full bg-[#F5E0C3] flex items-center justify-center text-brand-brown text-sm border border-white">
+                        <i class="fa-solid fa-kitchen-set"></i>
+                    </div>
+                    <div class="text-[12px] font-bold text-gray-800 leading-tight">Cita Rasa<br>Autentik</div>
+                </div>
+                <div class="flex items-center gap-2 lg:border-l lg:border-brand-brown/20 lg:pl-6">
+                    <div class="w-9 h-9 rounded-full bg-[#F5E0C3] flex items-center justify-center text-brand-brown text-sm border border-white">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </div>
+                    <div class="text-[12px] font-bold text-gray-800 leading-tight">Harga<br>Terjangkau</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Image Desktop overlay text -->
+        <div class="hidden lg:block relative h-[380px]">
+            <p class="font-hand text-white text-2xl leading-tight absolute top-2 left-10 -rotate-6 drop-shadow-lg text-center">Pilihan<br>Terbaik untuk<br>Hari Ini</p>
+            <div class="absolute top-[92px] left-[110px] text-white text-2xl -rotate-6">↩</div>
+        </div>
+
+        <!-- Hero Image (Mobile/Tablet view) -->
+        <div class="lg:hidden relative">
+            <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80" alt="Nasi Goreng" class="rounded-2xl shadow-xl object-cover h-[280px] w-full">
+            <div class="absolute top-3 right-4 transform -rotate-6">
+                <p class="font-hand font-bold text-white text-xl leading-tight text-center drop-shadow-lg">Pilihan<br>Terbaik untuk<br>Hari Ini</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MENU SECTION - sesuai referensi, compact -->
+<section id="menu" class="py-10 lg:py-14 bg-[#FDF9F1]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Section Header & Filter Area -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 mb-6">
+            <div>
+                <p class="text-brand-brown font-bold tracking-[0.3em] text-[11px] mb-1 uppercase">Daftar Menu</p>
+                <h2 class="text-3xl lg:text-[36px] font-heading font-bold text-brand-dark mb-2">Menu <span class="text-brand-brown">Pilihan</span> Kami</h2>
+                <p class="text-gray-500 text-sm max-w-lg">Temukan berbagai pilihan makanan, minuman, dan dessert dengan rasa terbaik.</p>
+            </div>
+            
+            <div class="w-full lg:w-auto flex flex-col gap-4">
+                <!-- Search Menu Khusus -->
+                <div class="relative w-full lg:w-72">
+                    <input type="text" id="menu-search-input" placeholder="Cari makanan atau minuman..." class="w-full pl-10 pr-4 py-2.5 rounded-full border-0 bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-brand-brown transition text-sm">
+                    <div class="absolute left-4 top-3 text-gray-500 text-sm">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Filters - centered seperti gambar -->
+        <div class="flex flex-wrap justify-center gap-3 mb-8" id="category-filters">
+            <!-- Filter buttons akan dirender via JS -->
+        </div>
+
+        <!-- Menu Grid - fix 4 kolom desktop agar tidak melar -->
+        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Kartu Menu akan dirender di sini via JS -->
+        </div>
+        
+        <!-- Kosong State -->
+        <div id="empty-state" class="hidden text-center py-20">
+            <div class="text-gray-400 text-6xl mb-4"><i class="fa-solid fa-plate-wheat"></i></div>
+            <h3 class="text-xl font-bold text-gray-700">Menu tidak ditemukan</h3>
+            <p class="text-gray-500">Coba kata kunci lain atau pilih kategori yang berbeda.</p>
+        </div>
+
+    </div>
+</section>
+
+<!-- CALL TO ACTION BANNER - compact -->
+<section id="tentang" class="py-8 bg-[#FDF9F1]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="relative rounded-2xl overflow-hidden bg-brand-dark flex items-center min-h-[240px]">
+            <!-- Background Image with Overlay -->
+            <div class="absolute inset-0">
+                <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80" alt="Banner background" class="w-full h-full object-cover opacity-40">
+                <div class="absolute inset-0 bg-gradient-to-r from-[#2D201A] via-[#2D201A]/90 to-transparent"></div>
+            </div>
+            
+            <div class="relative z-10 p-7 md:p-10 lg:w-2/3 flex flex-col justify-center">
+                <h2 class="text-2xl md:text-[34px] font-heading font-bold text-white mb-3 leading-tight">
+                    Rasakan Sensasi<br>Cita Rasa Indonesia
+                </h2>
+                <p class="text-gray-300 mb-6 max-w-md text-[14px]">
+                    Setiap hidangan kami dibuat dengan bahan pilihan dan resep khas Nusantara.
+                </p>
+                <div>
+                    <a href="#menu" class="inline-flex items-center gap-2 bg-brand-brown hover:bg-brand-accent text-white px-5 py-2.5 rounded-xl font-medium transition duration-300 text-sm">
+                        Lihat Menu Sekarang <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Floating Badges on Banner -->
+            <div class="absolute hidden lg:flex flex-col gap-3 right-10 top-1/2 -translate-y-1/2 z-10">
+                <div class="bg-white/95 backdrop-blur-sm px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-3 w-52 transform hover:scale-105 transition cursor-default">
+                    <div class="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-brand-brown text-base shrink-0">
+                        <i class="fa-solid fa-fire"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-[12px] text-gray-800 leading-tight">Banyak Pilihan<br>Menu Lezat</p>
+                    </div>
+                </div>
+                <div class="bg-white/95 backdrop-blur-sm px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-3 w-52 transform translate-x-6 hover:scale-105 transition cursor-default">
+                    <div class="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-brand-brown text-base shrink-0">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-[12px] text-gray-800 leading-tight">Cocok untuk<br>Keluarga & Teman</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER - compact sesuai referensi -->
+<footer id="kontak" class="bg-[#FDF9F1] pt-10 pb-6 border-t border-brand-brown/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
+            <!-- Brand Info -->
+            <div class="col-span-2 lg:col-span-2">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-9 h-9 rounded-full bg-brand-brown flex items-center justify-center text-white text-sm">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-heading font-bold text-[17px] text-brand-dark leading-tight">Rasa Nusantara</h2>
+                        <p class="text-[9px] tracking-[0.2em] text-brand-brown uppercase">Cita Rasa Indonesia</p>
+                    </div>
+                </div>
+                <p class="text-gray-500 text-[13px] mb-5 leading-relaxed max-w-xs">
+                    Restoran dengan cita rasa Indonesia yang menyajikan berbagai hidangan lezat dan berkualitas.
+                </p>
+                <div class="flex space-x-2.5">
+                    <a href="#" class="w-8 h-8 rounded-full bg-[#F5E0C3] flex items-center justify-center text-brand-brown hover:bg-brand-brown hover:text-white transition text-sm">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                    <a href="#" class="w-8 h-8 rounded-full bg-[#F5E0C3] flex items-center justify-center text-brand-brown hover:bg-brand-brown hover:text-white transition text-sm">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="w-8 h-8 rounded-full bg-[#F5E0C3] flex items-center justify-center text-brand-brown hover:bg-brand-brown hover:text-white transition text-sm">
+                        <i class="fa-brands fa-tiktok"></i>
+                    </a>
+                    <a href="#" class="w-8 h-8 rounded-full bg-[#F5E0C3] flex items-center justify-center text-brand-brown hover:bg-brand-brown hover:text-white transition text-sm">
+                        <i class="fa-brands fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Links -->
+            <div>
+                <h3 class="font-bold text-gray-900 mb-3 text-[14px]">Menu Cepat</h3>
+                <ul class="space-y-2 text-[13px] text-gray-600">
+                    <li><a href="#beranda" class="hover:text-brand-brown transition">Beranda</a></li>
+                    <li><a href="#menu" class="hover:text-brand-brown transition">Menu</a></li>
+                    <li><a href="#tentang" class="hover:text-brand-brown transition">Tentang</a></li>
+                    <li><a href="#kontak" class="hover:text-brand-brown transition">Kontak</a></li>
+                </ul>
+            </div>
+
+            <!-- Categories -->
+            <div>
+                <h3 class="font-bold text-gray-900 mb-3 text-[14px]">Kategori</h3>
+                <ul class="space-y-2 text-[13px] text-gray-600">
+                    <li><a href="#" class="hover:text-brand-brown transition" onclick="setCategoryFilter('Makanan'); return false;">Makanan</a></li>
+                    <li><a href="#" class="hover:text-brand-brown transition" onclick="setCategoryFilter('Minuman'); return false;">Minuman</a></li>
+                    <li><a href="#" class="hover:text-brand-brown transition" onclick="setCategoryFilter('Dessert'); return false;">Dessert</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact & Hours -->
+            <div class="col-span-2 md:col-span-2 lg:col-span-1 flex gap-6 lg:gap-0">
+                <div class="flex-1">
+                    <h3 class="font-bold text-gray-900 mb-3 text-[14px]">Kontak Kami</h3>
+                    <ul class="space-y-2 text-[13px] text-gray-600 mb-4">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-location-dot mt-0.5 text-brand-brown text-xs"></i>
+                            <span>Bandung, Jawa Barat</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-phone text-brand-brown text-xs"></i>
+                            <span>+62 812-3456-7890</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-envelope text-brand-brown text-xs"></i>
+                            <span>info@rasanusantara.id</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="flex-1 lg:border-l lg:border-gray-300 lg:pl-5">
+                    <h3 class="font-bold text-gray-900 mb-3 text-[14px]">Jam Operasional</h3>
+                    <div class="flex items-start gap-2 text-[13px] text-gray-600">
+                        <i class="fa-regular fa-clock mt-0.5 text-brand-brown"></i>
+                        <div>
+                            <p>Setiap Hari</p>
+                            <p class="font-semibold">10.00 - 22.00 WIB</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-5 border-t border-gray-300/70 flex flex-col md:flex-row justify-between items-center gap-3">
+            <p class="text-[12px] text-gray-500">&copy; 2024 Rasa Nusantara. All rights reserved.</p>
+            <div class="flex gap-3 text-[12px] text-gray-500 items-center">
+                <a href="#" class="hover:text-brand-brown">Kebijakan Privasi</a>
+                <span>|</span>
+                <a href="#" class="hover:text-brand-brown">Syarat & Ketentuan</a>
+                <span>|</span>
+                <!-- Tombol rahasia untuk buka Admin Panel -->
+                <button onclick="toggleAdminPanel()" class="text-brand-brown/50 hover:text-brand-brown font-mono text-xs ml-4" title="Buka Panel Admin">Admin</button>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- ADMIN PANEL MODAL (CRUD) -->
+<div id="admin-modal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 modal-overlay" onclick="toggleAdminPanel()"></div>
+    
+    <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="admin-drawer">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">Panel Manajemen Menu</h2>
+                <p class="text-sm text-gray-500">Kelola data menu (CRUD)</p>
+            </div>
+            <button onclick="toggleAdminPanel()" class="text-gray-400 hover:text-gray-700 bg-gray-200 p-2 rounded-full w-8 h-8 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+            
+            <!-- FORM TAMBAH/EDIT MENU -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-8">
+                <h3 id="form-title" class="font-bold text-gray-800 mb-4 border-b pb-2">Tambah Menu Baru</h3>
+                
+                <form id="menu-form" class="space-y-4">
+                    <input type="hidden" id="menu-id">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu *</label>
+                            <input type="text" id="menu-name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-transparent outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kategori *</label>
+                            <select id="menu-category" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-transparent outline-none">
+                                <option value="Makanan">Makanan</option>
+                                <option value="Minuman">Minuman</option>
+                                <option value="Dessert">Dessert</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi *</label>
+                        <textarea id="menu-desc" required rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-transparent outline-none"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Harga (Rp) *</label>
+                            <input type="number" id="menu-price" required min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-transparent outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar (Opsional)</label>
+                            <input type="url" id="menu-image" placeholder="https://..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-transparent outline-none">
+                            <p class="text-xs text-gray-400 mt-1">Kosongkan untuk gambar default</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-4 border-t mt-4">
+                        <button type="button" onclick="resetForm()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Batal</button>
+                        <button type="submit" id="btn-submit-form" class="px-4 py-2 bg-brand-brown text-white rounded-lg hover:bg-brand-dark transition shadow-sm">Simpan Menu</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TABEL DATA MENU -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800">Daftar Menu Tersimpan</h3>
+                    <span id="total-menu-badge" class="bg-brand-brown text-white text-xs px-2 py-1 rounded-full">0</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Info Menu</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Data baris akan dirender via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Pesan Notifikasi Toast -->
+<div id="toast" class="fixed bottom-5 right-5 z-[200] transform transition-transform duration-300 translate-y-24 opacity-0 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-xl"></i>
+    <p id="toast-message" class="font-medium">Pesan sukses.</p>
+</div>
+
+<script>
+    // --- 1. DATA INITIALIZATION (MOCK DATA) ---
+    // Data awal jika localStorage kosong
+    const initialData = [
+        {
+            id: 'm1',
+            name: 'Nasi Goreng Spesial',
+            category: 'Makanan',
+            description: 'Nasi goreng dengan ayam, telur dan sayuran segar.',
+            price: 25000,
+            image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+            id: 'm2',
+            name: 'Ayam Bakar',
+            category: 'Makanan',
+            description: 'Ayam bakar dengan bumbu khas dan sambal.',
+            price: 30000,
+            image: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+            id: 'm3',
+            name: 'Mie Goreng Jawa',
+            category: 'Makanan',
+            description: 'Mie goreng dengan sayuran dan topping ayam.',
+            price: 22000,
+            image: 'https://images.unsplash.com/photo-1612929633738-8fe01f7280f2?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+            id: 'm4',
+            name: 'Ayam Geprek',
+            category: 'Makanan',
+            description: 'Ayam crispy dengan sambal geprek pedas.',
+            price: 24000,
+            image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+            id: 'm5',
+            name: 'Steak Crispy',
+            category: 'Makanan',
+            description: 'Daging steak dengan saus spesial dan kentang.',
+            price: 38000,
+            image: 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+            id: 'd1',
+            name: 'Es Teh Manis',
+            category: 'Minuman',
+            description: 'Minuman segar untuk menemani hidanganmu.',
+            price: 7000,
+            image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+            id: 'd2',
+            name: 'Jus Jeruk',
+            category: 'Minuman',
+            description: 'Jus jeruk segar dengan vitamin alami.',
+            price: 12000,
+            image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+            id: 'd3',
+            name: 'Kopi Susu',
+            category: 'Minuman',
+            description: 'Kopi susu dengan perpaduan rasa yang pas.',
+            price: 15000,
+            image: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+            id: 'ds1',
+            name: 'Puding Caramel',
+            category: 'Dessert',
+            description: 'Puding lembut dengan saus caramel manis.',
+            price: 13000,
+            image: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=600&q=80'
+        }
+    ];
+
+    // Placeholder image fallback
+    const PLACEHOLDER_IMG = 'https://placehold.co/600x400/FDF9F1/A04724?text=Rasa+Nusantara';
+
+    // State Variables
+    let menuData = [];
+    let currentFilter = 'Semua';
+    let searchQuery = '';
+    
+    // Categories untuk filter (Dinamis dari desain: Semua, Makanan, Minuman, Dessert)
+    const categories = [
+        { id: 'Semua', icon: 'fa-table-cells-large' },
+        { id: 'Makanan', icon: 'fa-utensils' },
+        { id: 'Minuman', icon: 'fa-mug-hot' },
+        { id: 'Dessert', icon: 'fa-cake-candles' }
+    ];
+
+    // --- 2. LOCAL STORAGE MANAGEMENT (CRUD Dasar) ---
+    
+    // READ: Load data dari local storage
+    function loadData() {
+        const storedData = localStorage.getItem('rasaNusantaraMenu_v2');
+        if (storedData) {
+            menuData = JSON.parse(storedData);
+        } else {
+            // Jika kosong, gunakan initialData dan simpan ke local storage
+            menuData = [...initialData];
+            saveData();
+        }
+    }
+
+    // CREATE/UPDATE: Save data ke local storage
+    function saveData() {
+        localStorage.setItem('rasaNusantaraMenu_v2', JSON.stringify(menuData));
+        // Setelah data berubah, render ulang UI
+        renderMenuUI();
+        renderAdminTable();
+    }
+
+    // CREATE: Tambah item baru
+    function addMenuItem(item) {
+        // Generate ID sederhana
+        item.id = 'item_' + Date.now();
+        menuData.push(item);
+        saveData();
+        showToast('Menu berhasil ditambahkan!', 'success');
+    }
+
+    // UPDATE: Update item yg ada
+    function updateMenuItem(updatedItem) {
+        const index = menuData.findIndex(m => m.id === updatedItem.id);
+        if (index !== -1) {
+            menuData[index] = updatedItem;
+            saveData();
+            showToast('Menu berhasil diperbarui!', 'success');
+        }
+    }
+
+    // DELETE: Hapus item
+    function deleteMenuItem(id) {
+        // Alih-alih confirm(), kita gunakan toast saja setelah hapus atau custom modal (karena aturan melarang confirm)
+        // Di sini saya langsung hapus untuk kesederhanaan, di app nyata mungkin butuh custom dialog.
+        menuData = menuData.filter(m => m.id !== id);
+        saveData();
+        showToast('Menu telah dihapus.', 'error');
+    }
+
+    // --- STREAMING_CHUNK:JavaScript - UI Rendering Functions ---
+
+    // Format Rupiah
+    const formatRupiah = (number) => {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    };
+
+    // Render Filter Buttons - style sesuai referensi
+    function renderFilters() {
+        const container = document.getElementById('category-filters');
+        container.innerHTML = '';
+
+        categories.forEach(cat => {
+            const isActive = currentFilter === cat.id;
+            
+            const baseClass = "flex items-center gap-2 px-5 py-2 rounded-xl font-semibold text-[13px] transition-all duration-300 shadow-md";
+            const activeClass = "bg-brand-brown text-white";
+            const inactiveClass = "bg-white text-gray-700 hover:bg-orange-50";
+            const iconColor = isActive ? "text-white" : "text-brand-brown";
+            
+            const btn = document.createElement('button');
+            btn.className = `${baseClass} ${isActive ? activeClass : inactiveClass}`;
+            btn.innerHTML = `<i class="fa-solid ${cat.icon} ${iconColor}"></i> ${cat.id}`;
+            btn.onclick = () => setCategoryFilter(cat.id);
+            
+            container.appendChild(btn);
+        });
+    }
+
+    // Handle klik filter
+    function setCategoryFilter(category) {
+        currentFilter = category;
+        renderFilters(); // Update tampilan tombol
+        renderMenuUI(); // Filter ulang daftar menu
+        
+        // Scroll ke menu area
+        document.getElementById('menu').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Filter Logic utama
+    function getFilteredMenu() {
+        return menuData.filter(item => {
+            // Cek Kategori
+            const matchCategory = currentFilter === 'Semua' || item.category === currentFilter;
+            // Cek Pencarian
+            const matchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                item.description.toLowerCase().includes(searchQuery.toLowerCase());
+            
+            return matchCategory && matchSearch;
+        });
+    }
+
+    // Render Grid Menu Public
+    function renderMenuUI() {
+        const grid = document.getElementById('menu-grid');
+        const emptyState = document.getElementById('empty-state');
+        const filteredData = getFilteredMenu();
+
+        grid.innerHTML = '';
+
+        if (filteredData.length === 0) {
+            grid.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+        } else {
+            grid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            filteredData.forEach(item => {
+                const imgUrl = item.image ? item.image : PLACEHOLDER_IMG;
+                
+                // Badge warna sesuai gambar: Makanan orange-brown, Minuman hijau, Dessert peach
+                let badgeColor = 'bg-[#B85C2B]';
+                if(item.category === 'Minuman') badgeColor = 'bg-[#7AB648]';
+                if(item.category === 'Dessert') badgeColor = 'bg-[#E8A06A]';
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl overflow-hidden shadow-md border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col";
+                
+                card.innerHTML = `
+                    <div class="relative h-44 overflow-hidden">
+                        <img src="${imgUrl}" alt="${item.name}" onerror="this.src='${PLACEHOLDER_IMG}'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md ${badgeColor} text-white text-[11px] font-semibold shadow-sm">
+                            ${item.category}
+                        </div>
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="font-body font-extrabold text-[15px] text-gray-900 mb-1 group-hover:text-brand-brown transition-colors leading-snug">${item.name}</h3>
+                        <p class="text-[12px] text-gray-500 mb-3 line-clamp-2 flex-grow leading-relaxed">${item.description}</p>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="font-extrabold text-brand-brown text-[15px]">${formatRupiah(item.price)}</span>
+                            <button onclick="handleAddToCart('${item.name}')" class="w-8 h-8 rounded-lg bg-brand-brown text-white hover:bg-brand-dark flex items-center justify-center transition-colors text-sm shadow-sm">
+                                <i class="fa-solid fa-cart-shopping text-[13px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+    }
+
+    // Fungsi dummy add to cart
+    function handleAddToCart(itemName) {
+        showToast(`${itemName} ditambahkan ke keranjang!`, 'success');
+    }
+
+
+    // --- STREAMING_CHUNK:JavaScript - Admin CRUD Logic ---
+
+    const adminModal = document.getElementById('admin-modal');
+    const adminDrawer = document.getElementById('admin-drawer');
+    const menuForm = document.getElementById('menu-form');
+    
+    // Toggle Modal Admin
+    window.toggleAdminPanel = function() {
+        if (adminModal.classList.contains('hidden')) {
+            // Open
+            adminModal.classList.remove('hidden');
+            // Sedikit delay untuk animasi slide in
+            setTimeout(() => {
+                adminDrawer.classList.remove('translate-x-full');
+            }, 10);
+            renderAdminTable(); // Pastikan data fresh
+            resetForm(); // Reset form jika ada sisa edit sebelumnya
+        } else {
+            // Close
+            adminDrawer.classList.add('translate-x-full');
+            setTimeout(() => {
+                adminModal.classList.add('hidden');
+            }, 300); // Sesuaikan dengan durasi transisi Tailwind (duration-300)
+        }
+    }
+
+    // Render Tabel di Admin Panel
+    function renderAdminTable() {
+        const tbody = document.getElementById('admin-table-body');
+        document.getElementById('total-menu-badge').innerText = menuData.length;
+        tbody.innerHTML = '';
+
+        if(menuData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Belum ada data menu.</td></tr>`;
+            return;
+        }
+
+        // Render dari yg terbaru di belakang (opsional, bisa dibalik)
+        menuData.slice().reverse().forEach(item => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-50 transition-colors";
+            
+            const imgUrl = item.image ? item.image : PLACEHOLDER_IMG;
+
+            tr.innerHTML = `
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 flex-shrink-0">
+                            <img class="h-10 w-10 rounded-lg object-cover border" src="${imgUrl}" alt="" onerror="this.src='${PLACEHOLDER_IMG}'">
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-sm font-medium text-gray-900">${item.name}</div>
+                            <div class="text-xs text-gray-500 w-48 truncate" title="${item.description}">${item.description}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                        ${item.category}
+                    </span>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-medium">
+                    ${formatRupiah(item.price)}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                    <button onclick="editMenuItem('${item.id}')" class="text-blue-600 hover:text-blue-900 mr-3 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button onclick="deleteMenuItem('${item.id}')" class="text-red-600 hover:text-red-900 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Handle Submit Form (Create / Update)
+    menuForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Ambil nilai
+        const id = document.getElementById('menu-id').value;
+        const name = document.getElementById('menu-name').value;
+        const category = document.getElementById('menu-category').value;
+        const description = document.getElementById('menu-desc').value;
+        const price = parseInt(document.getElementById('menu-price').value);
+        const image = document.getElementById('menu-image').value;
+
+        const formData = { name, category, description, price, image };
+
+        if (id) {
+            // Update
+            formData.id = id;
+            updateMenuItem(formData);
+        } else {
+            // Create
+            addMenuItem(formData);
+        }
+
+        resetForm(); // Bersihkan form setelah simpan
+    });
+
+    // Handle Edit Button Click (Populate form)
+    window.editMenuItem = function(id) {
+        const item = menuData.find(m => m.id === id);
+        if(!item) return;
+
+        document.getElementById('form-title').innerText = 'Edit Menu: ' + item.name;
+        document.getElementById('btn-submit-form').innerText = 'Update Menu';
+        
+        document.getElementById('menu-id').value = item.id;
+        document.getElementById('menu-name').value = item.name;
+        document.getElementById('menu-category').value = item.category;
+        document.getElementById('menu-desc').value = item.description;
+        document.getElementById('menu-price').value = item.price;
+        document.getElementById('menu-image').value = item.image || '';
+
+        // Scroll form to view
+        document.querySelector('.overflow-y-auto').scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    // Reset Form to Create mode
+    window.resetForm = function() {
+        menuForm.reset();
+        document.getElementById('menu-id').value = '';
+        document.getElementById('form-title').innerText = 'Tambah Menu Baru';
+        document.getElementById('btn-submit-form').innerText = 'Simpan Menu';
+    }
+
+
+    // --- STREAMING_CHUNK:JavaScript - Utilities & Event Listeners ---
+
+    // Sistem Toast Notification Sederhana
+    let toastTimeout;
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const msgEl = document.getElementById('toast-message');
+        const iconEl = document.getElementById('toast-icon');
+
+        // Setup colors based on type
+        toast.className = `fixed bottom-5 right-5 z-[200] transform transition-transform duration-300 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-white ${
+            type === 'success' ? 'bg-green-600' : 'bg-red-500'
+        }`;
+        
+        iconEl.className = `fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} text-xl`;
+        msgEl.innerText = message;
+
+        // Animate in
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-24', 'opacity-0');
+        });
+
+        // Hide after 3s
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toast.classList.add('translate-y-24', 'opacity-0');
+        }, 3000);
+    }
+
+    // Handle Pencarian
+    const handleSearch = (e) => {
+        searchQuery = e.target.value;
+        renderMenuUI();
+    };
+
+    document.getElementById('nav-search').addEventListener('input', handleSearch);
+    document.getElementById('mobile-search').addEventListener('input', handleSearch);
+    document.getElementById('menu-search-input').addEventListener('input', handleSearch);
+    
+    // Sinkronisasi input search (jika ngetik di navbar, yg di menu juga update)
+    document.getElementById('nav-search').addEventListener('input', (e) => {
+        document.getElementById('menu-search-input').value = e.target.value;
+        // Scroll ke menu area jika ngetik di navbar tapi lagi di hero
+        if(window.scrollY < 300 && e.target.value.length > 2) {
+             document.getElementById('menu').scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+    document.getElementById('menu-search-input').addEventListener('input', (e) => {
+        document.getElementById('nav-search').value = e.target.value;
+    });
+
+    // Mobile Menu Toggle
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    mobileBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        const icon = mobileBtn.querySelector('i');
+        if(mobileMenu.classList.contains('hidden')) {
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-bars');
+        } else {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-xmark');
+        }
+    });
+
+    // Navbar Scroll Effect
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        if (window.scrollY > 10) {
+            nav.classList.add('shadow-md');
+            nav.classList.remove('border-b', 'border-brand-brown/10');
+        } else {
+            nav.classList.remove('shadow-md');
+            nav.classList.add('border-b', 'border-brand-brown/10');
+        }
+    });
+
+    // INITIALIZATION ON LOAD
+    window.onload = () => {
+        loadData(); // Load dari localStorage atau default
+        renderFilters(); // Setup tombol kategori
+        renderMenuUI(); // Tampilkan grid menu
+    };
+
+</script>
+</body>
+</html>
